@@ -26,10 +26,12 @@ In your project's Gruntfile, add a section named `kevoree_registry` to the data 
 grunt.initConfig({
   kevoree_registry: {
     options: {
-      type: 'json'
+      type: 'json',
+      host: 'registry.kevoree.org',
+      port: 80
     },
-    src: ['path/to/a/kevoree/model.json', 'path/to/another/one.json']
-  },
+    src: 'kevlib.json'
+  }
 });
 ```
 
@@ -42,12 +44,15 @@ Default value: `'json'`
 A string value that is used to tell the encoding type of the model you want to push.  
 Available types ('json', 'xmi', 'trace')
 
-### TODOs
- - Handle type for each specified file
- - Enable registry url specification (needs kevoree-registry-client rework)
+#### options.host
+Type: `String`
+Default value: `'registry.kevoree.org'`
 
-## Contributing
-In lieu of a formal styleguide, take care to maintain the existing coding style. Add unit tests for any new or changed functionality. Lint and test your code using [Grunt](http://gruntjs.com/).
+A string value used to specified the remote Kevoree registry you want to publish the model to.
 
-## Release History
-_1.0.0_ First release
+#### options.port
+Type: `Number`
+Default value: `80`
+
+A number value used to specified the remote Kevoree registry's port you want to publish the model to.
+
