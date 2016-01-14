@@ -12,14 +12,14 @@ var kevoree  = require('kevoree-library').org.kevoree;
 
 module.exports = function(grunt) {
 
-    grunt.registerMultiTask('kevoree_registry', 'Grunt plugin that handles POST of Kevoree models to registry.kevoree.org using kevoree-registry-client', function() {
+    grunt.registerMultiTask('kevoree_registry', 'Grunt plugin that handles POST of Kevoree models to registry.kevoree.org using kevoree-registry-client (you can use --kevoree-registry-host and --kevoree-registry-port to target an alternative registry).', function() {
         var done = this.async();
 
         // Merge task-specific and/or target-specific options with these defaults.
         var options = this.options({
             type: 'json',
-            host: 'registry.kevoree.org',
-            port: 80
+            host: grunt.option('kevoree-registry-host') || 'registry.kevoree.org',
+            port: grunt.option('kevoree-registry-port') || 80
         });
 
         var factory = new kevoree.factory.DefaultKevoreeFactory();
@@ -74,16 +74,20 @@ module.exports = function(grunt) {
                         type: options.type
                     };
 
-                    registry.post(regOpts, function (err) {
-                        if (err) {
-                            done(err);
-                        } else {
-                            grunt.log.ok('Model successfully published');
-                            done();
-                        }
-                    });
+                    try {
+                        registry.post(regOpts, function (err) {
+                            if (err) {
+                                done(err);
+                            } else {
+                                grunt.log.ok('Model successfully published');
+                                done();
+                            }
+                        });
+                    } catch (err) {
+                        done(new Error('Unable to publish the model'));
+                    }
                 } catch (err) {
-                    done(new Error('Unable to serialize model'));
+                    done(new Error('Unable to serialize the model'));
                 }
             }
         });

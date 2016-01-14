@@ -56,3 +56,10 @@ Default value: `80`
 
 A number value used to specified the remote Kevoree registry's port you want to publish the model to.
 
+
+### Command line options
+You can also update the default host and port of the targeted registry directly in the command line.
+For example the following command will try to publish the deploy unit to a registry located at http://localhost:8080/
+```bash
+$ grunt publish --kevoree-registry-host=localhost --kevoree-registry-port=8008
+```
