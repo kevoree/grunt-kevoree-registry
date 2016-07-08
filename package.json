@@ -1,7 +1,7 @@
 {
   "name": "grunt-kevoree-registry",
-  "description": "Grunt plugin that handles GET and POST of Kevoree models using kevoree-registry-client",
-  "version": "2.0.3",
+  "description": "Grunt plugin to publish Kevoree models to a Kevoree Registry",
+  "version": "3.0.0",
   "homepage": "https://github.com/kevoree/kevoree-js",
   "author": "Maxime Tricoire <max.tricoire@gmail.com>",
   "scripts": {
@@ -14,11 +14,18 @@
     "grunt": "~0.4.5"
   },
   "keywords": [
-    "gruntplugin"
+    "gruntplugin",
+    "kevoree",
+    "registry",
+    "publish"
   ],
   "dependencies": {
-    "kevoree-library": "^5.0.4",
-    "kevoree-registry-client": "^2.2.1"
+    "cli-table": "^0.3.1",
+    "inquirer": "^1.1.1",
+    "kevoree-library": "^5",
+    "kevoree-registry-api": "^0.1.0",
+    "nconf": "^0.8.4",
+    "q": "^1.4.1"
   },
   "directories": {
     "test": "test"
