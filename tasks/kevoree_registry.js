@@ -1,11 +1,13 @@
 'use strict';
 
+var path = require('path');
 var api = require('kevoree-registry-api');
 var nconf = require('nconf');
 var kevoree = require('kevoree-library').org.kevoree;
 
 var auth = require('../lib/auth');
 var diff = require('../lib/diff');
+var du = require('../lib/du');
 
 function genUrl() {
   var host = nconf.get('registry:host');
@@ -13,6 +15,22 @@ function genUrl() {
   var protocol = nconf.get('registry:ssl') ? 'https://' : 'http://';
   return protocol + host + ((port === 80) ? '' : ':' + port);
 }
+
+function computeNamespace(pkg) {
+  var name = pkg.name;
+
+  function walk(elem) {
+    if (elem.eContainer()) {
+      name = elem.name + '.' + name;
+      walk(elem.eContainer());
+    }
+  }
+  walk(pkg.eContainer());
+  return name;
+}
+
+var HOME_DIR = process.env[(process.platform === 'win32') ? 'USERPROFILE' : 'HOME'];
+var KREGRC_PATH = path.resolve(HOME_DIR, '.kregrc');
 
 module.exports = function (grunt) {
   grunt.registerMultiTask(
@@ -30,14 +48,29 @@ module.exports = function (grunt) {
         },
         user: {}
       });
-      var config = nconf.argv().env();
+      var config = nconf.argv().env().file(KREGRC_PATH);
       config.use('memory');
-      config.set('registry', options.registry);
-      config.set('user', options.user);
-      config.set('oauth', {
-        client_secret: 'kevoree_registryapp_secret',
-        client_id: 'kevoree_registryapp'
-      });
+      if (options.registry.hasOwnProperty('host')) {
+        config.set('registry:host', options.registry.host);
+      }
+      if (options.registry.hasOwnProperty('port')) {
+        config.set('registry:port', options.registry.port);
+      }
+      if (options.registry.hasOwnProperty('ssl')) {
+        config.set('registry:ssl', options.registry.ssl);
+      }
+      if (options.user.hasOwnProperty('login')) {
+        config.set('user:login', options.user.login);
+      }
+      if (options.user.hasOwnProperty('password')) {
+        config.set('user:password', options.user.password);
+      }
+      if (!config.get('oauth')) {
+        config.set('oauth', {
+          client_secret: 'kevoree_registryapp_secret',
+          client_id: 'kevoree_registryapp'
+        });
+      }
 
       var url = genUrl();
       grunt.log.ok('Registry: ' + url.blue);
@@ -70,17 +103,18 @@ module.exports = function (grunt) {
             var tdefStr;
             try {
               tdefs[0].removeAllDeployUnits();
-              tdefStr = serializer.serialize(tdefs[0]);
+              tdefStr = serializer.serialize(tdefs[0]).trim();
             } catch (err) {
               done(new Error('Unable to serialize TypeDefinition ' + tdefs[0].name + '/' + tdefs[0].version));
               return;
             }
 
+            var namespace = computeNamespace(tdefs[0].eContainer());
             grunt.log.writeln();
-            grunt.log.writeln('Looking for ' + (tdefs[0].eContainer().name + '.' +
-              tdefs[0].name + '/' + tdefs[0].version).bold + ' in the registry...');
+            grunt.log.writeln('Looking for ' + (namespace + '.' + tdefs[0].name +
+              '/' + tdefs[0].version).bold + ' in the registry...');
             api.tdef({
-                namespace: tdefs[0].eContainer().name,
+                namespace: namespace,
                 name: tdefs[0].name,
                 version: tdefs[0].version
               })
@@ -110,7 +144,7 @@ module.exports = function (grunt) {
                   var traces = compare.diff(regModel, srcModel).traces.array;
                   if (traces.length === 0) {
                     // no diff between local and registry: good to go
-                    done();
+                    du(grunt, namespace, tdefs[0], model, done);
                   } else {
                     // there is differences between local and registry: error
                     diff(grunt, srcModel, regModel, traces);
@@ -124,28 +158,31 @@ module.exports = function (grunt) {
                 if (err.code === 404) {
                   // typeDef does not exist: create it
                   grunt.log.warn('Not found.');
-                  grunt.log.writeln('Trying to add ' + (tdefs[0].eContainer().name + '.' +
+                  grunt.log.writeln('Trying to add ' + (namespace + '.' +
                     tdefs[0].name + '/' + tdefs[0].version).bold + ' in the registry...');
 
+                  grunt.log.writeln();
                   auth(grunt)
                     .then(function () {
                       grunt.verbose.writeln('TypeDefinition Model: ' + JSON.stringify(JSON.parse(tdefStr), null, 2));
                       api.tdef({
-                          namespace: tdefs[0].eContainer().name,
+                          namespace: namespace,
                           name: tdefs[0].name,
                           version: tdefs[0].version,
                           model: tdefStr
                         })
                         .create()
                         .then(function () {
-                          grunt.log.ok('Success:  ' + (tdefs[0].eContainer().name + '.' +
+                          grunt.log.writeln();
+                          grunt.log.ok('Success:  ' + (namespace + '.' +
                             tdefs[0].name + '/' + tdefs[0].version).bold + ' published on registry');
+                          du(grunt, namespace, tdefs[0], model, done);
                         })
                         .catch(function (err) {
                           if (err.code === 401) {
                             grunt.log.warn('You are not logged in');
                           } else if (err.code === 403) {
-                            grunt.log.warn('You are not a member of namespace "' + tdefs[0].eContainer().name + '"');
+                            grunt.log.warn('You are not a member of namespace "' + namespace + '"');
                           } else {
                             grunt.log.warn(err.message);
                           }

@@ -33,7 +33,8 @@ grunt.initConfig({
           ssl: false,
         },
         user: {
-          login: 'kevoree'
+          login: 'kevoree',
+          password: null // this will force password prompt even if HOME/.kregrc specifies a user:password
         }
       },
       src: 'kevlib.json'
