@@ -121,7 +121,7 @@ module.exports = function (grunt) {
               .get()
               .then(function (tdef) {
                 grunt.log.ok('Found (id:' + tdef.id + ')');
-                grunt.log.writeln();
+                grunt.verbose.writeln();
                 grunt.verbose.writeln('Loading model...');
                 var regTdef;
                 try {
