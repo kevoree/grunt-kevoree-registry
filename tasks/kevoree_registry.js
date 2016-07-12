@@ -158,8 +158,8 @@ module.exports = function (grunt) {
                 if (err.code === 404) {
                   // typeDef does not exist: create it
                   grunt.log.warn('Not found, creating...');
-
                   grunt.log.writeln();
+
                   auth(grunt)
                     .then(function () {
                       grunt.verbose.writeln('TypeDefinition Model: ' + JSON.stringify(JSON.parse(tdefStr), null, 2));
@@ -191,10 +191,12 @@ module.exports = function (grunt) {
                         });
                     })
                     .catch(function (err) {
-                      done(err);
+                      grunt.log.warn(err.message);
+                      done(new Error('Auth failed.'));
                     });
                 } else {
-                  done(err);
+                  grunt.log.warn(err.message);
+                  done(new Error('Unable to create TypeDefinition.'));
                 }
               });
           }
