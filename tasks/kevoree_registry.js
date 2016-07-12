@@ -111,12 +111,12 @@ module.exports = function (grunt) {
 
             var namespace = computeNamespace(tdefs[0].eContainer());
             grunt.log.writeln();
-            grunt.log.writeln('Looking for ' + (namespace + '.' + tdefs[0].name +
+            grunt.log.writeln('Looking for TypeDefinition ' + (namespace + '.' + tdefs[0].name +
               '/' + tdefs[0].version).bold + ' in the registry...');
             api.tdef({
-                namespace: namespace,
                 name: tdefs[0].name,
-                version: tdefs[0].version
+                version: tdefs[0].version,
+                namespace: { name: namespace }
               })
               .get()
               .then(function (tdef) {
@@ -157,19 +157,17 @@ module.exports = function (grunt) {
               .catch(function (err) {
                 if (err.code === 404) {
                   // typeDef does not exist: create it
-                  grunt.log.warn('Not found.');
-                  grunt.log.writeln('Trying to add ' + (namespace + '.' +
-                    tdefs[0].name + '/' + tdefs[0].version).bold + ' in the registry...');
+                  grunt.log.warn('Not found, creating...');
 
                   grunt.log.writeln();
                   auth(grunt)
                     .then(function () {
                       grunt.verbose.writeln('TypeDefinition Model: ' + JSON.stringify(JSON.parse(tdefStr), null, 2));
                       api.tdef({
-                          namespace: namespace,
                           name: tdefs[0].name,
                           version: tdefs[0].version,
-                          model: tdefStr
+                          model: tdefStr,
+                          namespace: { name: namespace }
                         })
                         .create()
                         .then(function () {
@@ -179,10 +177,13 @@ module.exports = function (grunt) {
                           du(grunt, namespace, tdefs[0], model, done);
                         })
                         .catch(function (err) {
+                          grunt.log.writeln();
                           if (err.code === 401) {
                             grunt.log.warn('You are not logged in');
                           } else if (err.code === 403) {
                             grunt.log.warn('You are not a member of namespace "' + namespace + '"');
+                          } else if (err.code === 404) {
+                            grunt.log.warn('Namespace "' + namespace + '" does not exist in the registry');
                           } else {
                             grunt.log.warn(err.message);
                           }
