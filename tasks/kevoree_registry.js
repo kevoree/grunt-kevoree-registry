@@ -31,6 +31,7 @@ function computeNamespace(pkg) {
 
 var HOME_DIR = process.env[(process.platform === 'win32') ? 'USERPROFILE' : 'HOME'];
 var KREGRC_PATH = path.resolve(HOME_DIR, '.kregrc');
+nconf.argv().file(KREGRC_PATH).use('memory');
 
 module.exports = function (grunt) {
   grunt.registerMultiTask(
@@ -48,25 +49,23 @@ module.exports = function (grunt) {
         },
         user: {}
       });
-      var config = nconf.argv().env().file(KREGRC_PATH);
-      config.use('memory');
       if (options.registry.hasOwnProperty('host')) {
-        config.set('registry:host', options.registry.host);
+        nconf.set('registry:host', options.registry.host);
       }
       if (options.registry.hasOwnProperty('port')) {
-        config.set('registry:port', options.registry.port);
+        nconf.set('registry:port', options.registry.port);
       }
       if (options.registry.hasOwnProperty('ssl')) {
-        config.set('registry:ssl', options.registry.ssl);
+        nconf.set('registry:ssl', options.registry.ssl);
       }
       if (options.user.hasOwnProperty('login')) {
-        config.set('user:login', options.user.login);
+        nconf.set('user:login', options.user.login);
       }
       if (options.user.hasOwnProperty('password')) {
-        config.set('user:password', options.user.password);
+        nconf.set('user:password', options.user.password);
       }
-      if (!config.get('oauth')) {
-        config.set('oauth', {
+      if (!nconf.get('oauth')) {
+        nconf.set('oauth', {
           client_secret: 'kevoree_registryapp_secret',
           client_id: 'kevoree_registryapp'
         });
