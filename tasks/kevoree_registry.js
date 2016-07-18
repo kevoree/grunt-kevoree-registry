@@ -8,6 +8,7 @@ var kevoree = require('kevoree-library').org.kevoree;
 var auth = require('../lib/auth');
 var diff = require('../lib/diff');
 var du = require('../lib/du');
+var createPkgs = require('../lib/create-pkgs');
 
 function genUrl() {
   var host = nconf.get('registry:host');
@@ -73,6 +74,7 @@ module.exports = function (grunt) {
       var factory = new kevoree.factory.DefaultKevoreeFactory();
       var compare = factory.createModelCompare();
       var loader = factory.createJSONLoader();
+      var cloner = factory.createModelCloner();
       var serializer = factory.createJSONSerializer();
 
       if (this.files.length === 1) {
@@ -95,10 +97,12 @@ module.exports = function (grunt) {
             done(new Error('Model must define one TypeDefinition strictly (found: ' + tdefs.length + ')'));
             return;
           } else {
-            var tdefStr;
+            var tdefStr, cleanTdef;
             try {
-              tdefs[0].removeAllDeployUnits();
-              tdefStr = serializer.serialize(tdefs[0]).trim();
+              var clonedModel = cloner.clone(model);
+              cleanTdef = clonedModel.findByPath(tdefs[0].path());
+              cleanTdef.removeAllDeployUnits();
+              tdefStr = serializer.serialize(cleanTdef).trim();
             } catch (err) {
               done(new Error('Unable to serialize TypeDefinition ' + tdefs[0].name + '/' + tdefs[0].version));
               return;
@@ -124,17 +128,13 @@ module.exports = function (grunt) {
                   // create a ContainerRoot for registry tdef
                   var regModel = factory.createContainerRoot().withGenerated_KMF_ID(0);
                   factory.root(regModel);
-                  var regPkg = factory.createPackage();
-                  regPkg.name = tdef.namespace.name;
-                  regModel.addPackages(regPkg);
+                  var regPkg = createPkgs(tdef.namespace.name, regModel);
                   regPkg.addTypeDefinitions(regTdef);
                   // create a ContainerRoot for src tdef
                   var srcModel = factory.createContainerRoot().withGenerated_KMF_ID(0);
                   factory.root(srcModel);
-                  var srcPkg = factory.createPackage();
-                  srcPkg.name = tdef.namespace.name;
-                  srcModel.addPackages(srcPkg);
-                  srcPkg.addTypeDefinitions(tdefs[0]);
+                  var srcPkg = createPkgs(tdef.namespace.name, srcModel);
+                  srcPkg.addTypeDefinitions(cleanTdef);
                   // diff the two models to ensure there are the same
                   var traces = compare.diff(regModel, srcModel).traces.array;
                   if (traces.length === 0) {
