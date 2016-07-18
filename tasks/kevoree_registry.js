@@ -31,22 +31,18 @@ function computeNamespace(pkg) {
 
 var HOME_DIR = process.env[(process.platform === 'win32') ? 'USERPROFILE' : 'HOME'];
 var KREGRC_PATH = path.resolve(HOME_DIR, '.kregrc');
-nconf.argv().file(KREGRC_PATH).use('memory');
+nconf.argv({ 'registry.ssl': { type: 'boolean' } }).file(KREGRC_PATH).use('memory');
 
 module.exports = function (grunt) {
   grunt.registerMultiTask(
     'kevoree_registry',
-    'Grunt plugin to publish Kevoree models to a Kevoree Registry (you can use --kevoree-registry-host and --kevoree-registry-port to target an alternative registry).',
+    'Grunt plugin to publish Kevoree models to a Kevoree Registry (you can use --registry.host, --registry.port and --registry.ssl to target an alternative registry).',
     function () {
       var done = this.async();
 
       // Merge task-specific and/or target-specific options with these defaults.
       var options = this.options({
-        registry: {
-          host: grunt.option('kevoree-registry-host') || 'registry.kevoree.org',
-          port: grunt.option('kevoree-registry-port') || 80,
-          ssl: true
-        },
+        registry: {},
         user: {}
       });
       if (options.registry.hasOwnProperty('host')) {
