@@ -55,17 +55,42 @@ module.exports = function (grunt) {
       if (options.registry.hasOwnProperty('ssl')) {
         nconf.set('registry:ssl', options.registry.ssl);
       }
+      if (options.registry.hasOwnProperty('oauth')) {
+        if (options.registry.oauth.hasOwnProperty('client_secret')) {
+          nconf.set('registry:oauth:client_secret', options.registry.oauth.client_secret);
+        }
+        if (options.registry.oauth.hasOwnProperty('client_id')) {
+          nconf.set('registry:oauth:client_id', options.registry.oauth.client_id);
+        }
+      }
       if (options.user.hasOwnProperty('login')) {
         nconf.set('user:login', options.user.login);
       }
       if (options.user.hasOwnProperty('password')) {
         nconf.set('user:password', options.user.password);
       }
-      if (!nconf.get('oauth')) {
-        nconf.set('oauth', {
-          client_secret: 'kevoree_registryapp_secret',
-          client_id: 'kevoree_registryapp'
+
+      // even after "conf" & "options" reading: if it misses something let's
+      // use some default values
+      if (!nconf.get('registry')) {
+        // there is no registry conf
+        nconf.set('registry', {
+          host: 'registry.kevoree.org',
+          port: 80,
+          ssl: true,
+          oauth: {
+            client_secret: 'kevoree_registryapp_secret',
+            client_id: 'kevoree_registryapp'
+          }
         });
+      } else {
+        if (!nconf.get('registry:oauth')) {
+          // there is no oauth conf
+          nconf.set('registry:oauth', {
+            client_secret: 'kevoree_registryapp_secret',
+            client_id: 'kevoree_registryapp'
+          });
+        }
       }
 
       var url = genUrl();
