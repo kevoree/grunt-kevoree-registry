@@ -31,7 +31,7 @@ function computeNamespace(pkg) {
 }
 
 var HOME_DIR = process.env[(process.platform === 'win32') ? 'USERPROFILE' : 'HOME'];
-var KREGRC_PATH = path.resolve(HOME_DIR, '.kregrc');
+var KREGRC_PATH = path.resolve(HOME_DIR, '.kregrc.json');
 nconf.argv({ 'registry.ssl': { type: 'boolean' } }).file(KREGRC_PATH).use('memory');
 
 module.exports = function (grunt) {
