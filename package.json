@@ -1,7 +1,7 @@
 {
   "name": "grunt-kevoree-registry",
   "description": "Grunt plugin to publish Kevoree models to a Kevoree Registry",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "homepage": "https://github.com/kevoree/kevoree-js",
   "author": "Maxime Tricoire <max.tricoire@gmail.com>",
   "scripts": {
@@ -22,9 +22,9 @@
   "dependencies": {
     "cli-table": "^0.3.1",
     "inquirer": "^1.1.1",
-    "kevoree-library": "^5",
+    "kevoree-library": "next",
     "kevoree-registry-api": "^1.2.0",
-    "nconf": "^0.8.4",
+    "kevoree-nconf": "^0.8.5",
     "q": "^1.4.1"
   },
   "directories": {

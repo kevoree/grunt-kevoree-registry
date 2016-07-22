@@ -2,7 +2,7 @@
 
 var path = require('path');
 var api = require('kevoree-registry-api');
-var nconf = require('nconf');
+var nconf = require('kevoree-nconf');
 var kevoree = require('kevoree-library').org.kevoree;
 
 var auth = require('../lib/auth');
