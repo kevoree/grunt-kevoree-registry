@@ -1,8 +1,8 @@
 'use strict';
 
-var path = require('path');
 var api = require('kevoree-registry-api');
-var nconf = require('kevoree-nconf');
+var config = require('tiny-conf');
+var kConst = require('kevoree-const');
 var kevoree = require('kevoree-library').org.kevoree;
 
 var auth = require('../lib/auth');
@@ -11,9 +11,9 @@ var du = require('../lib/du');
 var createPkgs = require('../lib/create-pkgs');
 
 function genUrl() {
-  var host = nconf.get('registry:host');
-  var port = nconf.get('registry:port');
-  var protocol = nconf.get('registry:ssl') ? 'https://' : 'http://';
+  var host = config.get('registry.host');
+  var port = config.get('registry.port');
+  var protocol = config.get('registry.ssl') ? 'https://' : 'http://';
   return protocol + host + ((port === 80) ? '' : ':' + port);
 }
 
@@ -30,9 +30,8 @@ function computeNamespace(pkg) {
   return name;
 }
 
-var HOME_DIR = process.env[(process.platform === 'win32') ? 'USERPROFILE' : 'HOME'];
-var KREGRC_PATH = path.resolve(HOME_DIR, '.kregrc.json');
-nconf.argv({ 'registry.ssl': { type: 'boolean' } }).file(KREGRC_PATH).use('memory');
+require('tiny-conf-plugin-file')(config, kConst.CONFIG_PATH);
+require('tiny-conf-plugin-argv')(config);
 
 module.exports = function (grunt) {
   grunt.registerMultiTask(
@@ -47,34 +46,34 @@ module.exports = function (grunt) {
         user: {}
       });
       if (options.registry.hasOwnProperty('host')) {
-        nconf.set('registry:host', options.registry.host);
+        config.set('registry.host', options.registry.host);
       }
       if (options.registry.hasOwnProperty('port')) {
-        nconf.set('registry:port', options.registry.port);
+        config.set('registry.port', options.registry.port);
       }
       if (options.registry.hasOwnProperty('ssl')) {
-        nconf.set('registry:ssl', options.registry.ssl);
+        config.set('registry.ssl', options.registry.ssl);
       }
       if (options.registry.hasOwnProperty('oauth')) {
         if (options.registry.oauth.hasOwnProperty('client_secret')) {
-          nconf.set('registry:oauth:client_secret', options.registry.oauth.client_secret);
+          config.set('registry.oauth.client_secret', options.registry.oauth.client_secret);
         }
         if (options.registry.oauth.hasOwnProperty('client_id')) {
-          nconf.set('registry:oauth:client_id', options.registry.oauth.client_id);
+          config.set('registry.oauth.client_id', options.registry.oauth.client_id);
         }
       }
       if (options.user.hasOwnProperty('login')) {
-        nconf.set('user:login', options.user.login);
+        config.set('user.login', options.user.login);
       }
       if (options.user.hasOwnProperty('password')) {
-        nconf.set('user:password', options.user.password);
+        config.set('user.password', options.user.password);
       }
 
       // even after "conf" & "options" reading: if it misses something let's
       // use some default values
-      if (!nconf.get('registry')) {
+      if (!config.get('registry')) {
         // there is no registry conf
-        nconf.set('registry', {
+        config.set('registry', {
           host: 'registry.kevoree.org',
           port: 80,
           ssl: true,
@@ -84,9 +83,9 @@ module.exports = function (grunt) {
           }
         });
       } else {
-        if (!nconf.get('registry:oauth')) {
+        if (!config.get('registry.oauth')) {
           // there is no oauth conf
-          nconf.set('registry:oauth', {
+          config.set('registry.oauth', {
             client_secret: 'kevoree_registryapp_secret',
             client_id: 'kevoree_registryapp'
           });
