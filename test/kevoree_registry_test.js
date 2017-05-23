@@ -23,15 +23,15 @@ var grunt = require('grunt');
  */
 
 exports.kevoree_registry = {
-    setUp: function(done) {
-        // setup here if necessary
-        done();
-    },
-    default_options: function(test) {
-        test.expect(1);
+	setUp: function (done) {
+		// setup here if necessary
+		done();
+	},
+	default_options: function (test) {
+		test.expect(1);
 
-        test.equal(0, 0, 'should describe what the default behavior is.');
+		test.equal(0, 0, 'should describe what the default behavior is.');
 
-        test.done();
-    }
+		test.done();
+	}
 };
